@@ -1,21 +1,13 @@
 from contextlib import asynccontextmanager
-from importlib.metadata import requires
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.auth import auth
-from app.routes.users import users
 from app.core.events import create_start_app_handler
 from app.core.config import API_PREFIX, DEBUG, PROJECT_NAME, VERSION
-from sqlmodel import SQLModel
-from app.core.database import engine
-
 from contextlib import asynccontextmanager
-
 from fastapi import Depends, FastAPI
-
-from app.core.database import User, create_db_and_tables
+from app.core.database import create_db_and_tables, User
 from app.core.schema import UserCreate, UserRead, UserUpdate
-from app.routes.users.users import auth_backend, current_active_user, fastapi_users
+from app.routes.users.users import auth_backend, fastapi_users
+from app.routes.events.events import router as event_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -49,3 +41,4 @@ app.include_router(
     prefix="/auth",
     tags=["auth"],
 )
+app.include_router(router=event_router, prefix="/app")

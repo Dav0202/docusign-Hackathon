@@ -26,6 +26,16 @@ DB_USER: str | None = config('DB_USER')
 DB_PASSWORD: str | None = config('DB_PASSWORD')
 DB_NAME: str | None = config('DB_NAME')
 
+# Mail configuration
+mail_username: str = config('MAIL_USERNAME', default='username')
+mail_sender_email: str = config(
+        'MAIL_USERNAME', default='altrumus@support.com')
+mail_password: str = config('MAIL_PASSWORD', default='*******')
+mail_port: int = int(config('MAIL_PORT', default=1025))
+mail_server: str = config('MAIL_SERVER', default='localhost')
+mail_start_tls: bool = bool(config('MAIL_STARTTLS', default=False))
+mail_use_credentials: bool = bool(config('MAIL_USE_CREDENTIALS', default=False))
+
 # logging configuration
 LOGGING_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 logging.basicConfig(

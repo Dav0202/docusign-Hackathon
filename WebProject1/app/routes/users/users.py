@@ -1,8 +1,8 @@
 import uuid
 from typing import Optional, Union
-from fastapi.responses import JSONResponse
+from app.core.mail import simple_send
 from loguru import logger
-from fastapi import Depends, Request, status
+from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, InvalidPasswordException, UUIDIDMixin, models
 from app.core.database import User, get_user_db
 from app.core.schema import UserCreate
@@ -22,7 +22,9 @@ from fastapi_users.jwt import decode_jwt, generate_jwt
 from fastapi_users.password import PasswordHelper
 from app.core.config import SECRET_KEY, CHANGE_PASSWORD_URL
 from app.core.utils import OTPManager
+from app.core import schema as schemas
 import fastapi_users
+
 
 SECRET = str(SECRET_KEY)
 
@@ -31,7 +33,6 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     verification_token_secret = SECRET
 
     async def on_after_register(self, user: User, request: Optional[Request] = None):
-        print(f"User {user.email} has registered.")
         await self.request_verify(user, request)        
 
     async def request_verify(
@@ -102,22 +103,49 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         return verified_user        
 
     async def on_after_forgot_password(
-        self, user: User, token: str, request: Optional[Request] = None
+        self, user: User, token: str, request: Optional[Request] = None, 
     ):        
         reset_link = CHANGE_PASSWORD_URL.format(token=token)
-        
-        print(f"User {user.id} has forgot their password. Reset link token: {reset_link}")
-        return JSONResponse(content={"detail": "reset link sent"})
+        user_email = user.email
+        body = {"email": user_email, "link": reset_link}
+
+        Email = {
+            "email": [user_email],
+            "body": schemas.ValidationSchema(**body),
+            "file_name": "forgot-password.html",
+        }
+
+        e_mail = schemas.EmailSchema(**Email)
+        await simple_send(e_mail)
 
     async def on_after_request_verify(
         self, user: User, generated_otp: str, request: Optional[Request] = None
     ):
-        logger.info(f"Verification requested for user {user.id}. Verification token: {generated_otp}")
+        user_email = user.email
+        body = {"email": user_email, "link": generated_otp}
+
+        Email = {
+            "email": [user_email],
+            "body": schemas.ValidationSchema(**body),
+            "file_name": "email-verification.html",
+        }
+        print(generated_otp)
+        e_mail = schemas.EmailSchema(**Email)
+        await simple_send(e_mail)        
 
     async def on_after_verify(
         self, user: User, request: Optional[Request] = None
     ):
-        logger.info(f"User {user.email} Verified.")
+        user_email = user.email
+        body = {"email": user_email, "link":""}
+
+        Email = {
+            "email": [user_email],
+            "body": schemas.ValidationSchema(**body),
+            "file_name": "email-verified.html",
+        }
+        e_mail = schemas.EmailSchema(**Email)
+        await simple_send(e_mail)        
 
     async def on_after_reset_password(
         self, user: models.UP, request: Optional[Request] = None
