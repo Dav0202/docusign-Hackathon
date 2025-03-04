@@ -3,7 +3,7 @@ from typing import List, Optional, Type
 from pydantic import BaseModel, EmailStr
 import uuid
 from fastapi_users import schemas
-from app.core.database import Base, Events as Event
+from app.core.database import Base, Events as Event, Events_Registration as EVr
 
 class BaseInDB(BaseModel):
     # base schema for every schema that stored in DB.
@@ -24,10 +24,14 @@ class ValidationSchema(BaseModel):
     email: EmailStr
     link: str
 
+class ValidationSchemaQr(BaseModel):
+    qr_code: str   
+    event_name: str    
+
 
 class EmailSchema(BaseModel):
     email: List[EmailStr]
-    body: ValidationSchema
+    body: ValidationSchemaQr
     file_name: str
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
@@ -88,6 +92,9 @@ class Events(BaseModel):
 
 class EventInDB(BaseInDB, Events):
     created_by_id: uuid.UUID
+    
+    class Config(BaseInDB.Config):
+        orm_model = Event    
 
 class UpdateEventInDB(BaseInDB, Events):
     id: uuid.UUID  
@@ -102,3 +109,27 @@ class DonorBase(BaseModel):
 
 class VolunteerBase(BaseModel):
     pass  
+
+
+class Event_Registration_Read(BaseModel):
+    id: int
+    user_id : uuid.UUID
+    event_id : uuid.UUID
+    agreement_status : str
+    created_at: datetime
+
+class Event_Registration(BaseModel):
+    user_id : uuid.UUID
+    event_id : uuid.UUID
+    #agreement_status : str
+
+class Event_RegistrationInDB(BaseInDB, Event_Registration):
+    class Config(BaseInDB.Config):
+        orm_model = EVr
+
+class Update_Event_RegistrationInDB(BaseInDB, Event_Registration):
+    id: uuid.UUID  
+    created_by_id: uuid.UUID    
+
+    class Config(BaseInDB.Config):
+        orm_model = Event

@@ -37,3 +37,27 @@ def exception_handler(f: Callable) -> Any:
             status_code = exception_map[exception_cls]
             raise HTTPException(status_code=status_code, detail=str(err))
     return decorated
+
+class NotFound(HTTPException):
+    """*404* `Not Found`
+
+    Raise if a resource does not exist and never existed.
+    """
+
+    status_code = 404
+    detail = (
+        "The requested URL was not found on the server. If you entered"
+        " the URL manually please check your spelling and try again."
+    )
+
+class BadRequest(HTTPException):
+    """*404* `Not Found`
+
+    Raise if a resource does not exist and never existed.
+    """
+
+    status_code = 400
+    detail = (
+        "The browser (or proxy) sent a request that this server could "
+        "not understand."
+    )    

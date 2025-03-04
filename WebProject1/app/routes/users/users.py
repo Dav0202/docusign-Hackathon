@@ -1,8 +1,8 @@
 import uuid
-from typing import Optional, Union
+from typing import Optional, Union, Annotated
 from app.core.mail import simple_send
 from loguru import logger
-from fastapi import Depends, Request
+from fastapi import Depends, Request, status
 from fastapi_users import BaseUserManager, InvalidPasswordException, UUIDIDMixin, models
 from app.core.database import User, get_user_db
 from app.core.schema import UserCreate
@@ -21,10 +21,10 @@ from fastapi_users import exceptions, models
 from fastapi_users.jwt import decode_jwt, generate_jwt
 from fastapi_users.password import PasswordHelper
 from app.core.config import SECRET_KEY, CHANGE_PASSWORD_URL
-from app.core.utils import OTPManager
 from app.core import schema as schemas
 import fastapi_users
-
+from fastapi.exceptions import HTTPException
+from app.core.utils import OTPManager
 
 SECRET = str(SECRET_KEY)
 
@@ -129,7 +129,6 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             "body": schemas.ValidationSchema(**body),
             "file_name": "email-verification.html",
         }
-        print(generated_otp)
         e_mail = schemas.EmailSchema(**Email)
         await simple_send(e_mail)        
 
@@ -189,3 +188,15 @@ auth_backend = AuthenticationBackend(
 fastapi_users = MyFastAPIUsers(get_user_manager, [auth_backend])
 
 current_active_user = fastapi_users.current_user(active=True)   
+
+class PermissionChecker:
+
+    def __init__(self, allowed_roles: list[str]) -> None:
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, current_user: User = Depends(current_active_user)):
+          if current_user.role not in self.allowed_roles:               
+               raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail=f"You do not have permission to access this resource",
+                    )            

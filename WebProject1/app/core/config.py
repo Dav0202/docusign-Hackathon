@@ -36,6 +36,41 @@ mail_server: str = config('MAIL_SERVER', default='localhost')
 mail_start_tls: bool = bool(config('MAIL_STARTTLS', default=False))
 mail_use_credentials: bool = bool(config('MAIL_USE_CREDENTIALS', default=False))
 
+#docusign config
+DS_CLIENT_ID : str | None = config('DS_CLIENT_ID')
+# Integration secret key
+DS_CLIENT_SECRET: str | None = config('DS_CLIENT_SECRET')
+ORGANISATION_ID : str | None = config('ORGANISATION_ID')
+
+# API Username
+DS_IMPERSONATED_USER_GUID : str | None = config('DS_IMPERSONATED_USER_GUID')
+
+# Target account ID. Use FALSE to indicate that the user's default account should be used.
+DS_TARGET_ACCOUNT_ID : bool | None = config('DS_TARGET_ACCOUNT_ID')
+
+# React environment variables
+# UI and BE links
+APP_DS_RETURN_URL : str | None = config('APP_DS_RETURN_URL')
+APP_API_BASE_URL : str | None = config('APP_API_BASE_URL')
+
+# The DS Authentication server
+DS_AUTH_SERVER : str | None = config('DS_AUTH_SERVER')
+
+# Demo Docusign API URL
+APP_DS_DEMO_SERVER : str | None = config('APP_DS_DEMO_SERVER')
+PRIVATE_KEY_FILE : str | None = config('PRIVATE_KEY_FILE')
+
+TOKEN_EXPIRATION_IN_SECONDS = 3600
+TOKEN_REPLACEMENT_IN_SECONDS = 10 * 60
+
+CODE_GRANT_SCOPES = ['signature', 'impersonation']
+PERMISSION_SCOPES = ['signature', 'impersonation', 'click.manage']
+
+CLICKWRAP_BASE_HOST = 'https://demo.docusign.net'
+CLICKWRAP_BASE_URI = '/clickapi/v1/accounts'
+CLICKWRAP_TIME_DELTA_IN_MINUTES = 15
+
+
 # logging configuration
 LOGGING_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 logging.basicConfig(

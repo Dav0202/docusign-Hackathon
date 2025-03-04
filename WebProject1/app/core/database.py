@@ -41,8 +41,11 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
             String(length=12), unique=True, index=True, nullable=False
         )
     role: Mapped[str] = mapped_column(
-            String(length=50), unique=False, index=True, nullable=False
+            String(length=50), unique=False, index=True, nullable=False, default="user" 
+            # 'organizer', 'user', 'volunteer'
         )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=datetime.now())    
     events_attending: Mapped[List["Events_Registration"]]= relationship(back_populates="user")    
 
     my_events: Mapped[List["Events"]]= relationship(back_populates="created_by")    
@@ -84,19 +87,20 @@ class Events(Base):
 
 class Events_Registration(Base):
     __tablename__ = 'event_registration'
+    __table_args__ = (UniqueConstraint("user_id", "event_id", name="unique_user_event"),)
 
     id: Mapped[int] = mapped_column(
         primary_key=True)
-    
+    envelope_id : Mapped[UUID_ID] = mapped_column(GUID, primary_key=False)
     user_id : Mapped[UUID_ID] = mapped_column(ForeignKey("user.id",ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="events_attending") 
     event_id : Mapped[UUID_ID] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"))
     event: Mapped["Events"] = relationship(back_populates="events_regs")    
     agreement_status :Mapped[str] =  mapped_column(
             String(length=20), unique=False, index=True, nullable=False, default="pending")  
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now())
 
-    __table_args__ = (UniqueConstraint("user_id", "event_id", name="unique_user_event"),)
+
 
 async def create_db_and_tables():
     async with engine.begin() as conn:
